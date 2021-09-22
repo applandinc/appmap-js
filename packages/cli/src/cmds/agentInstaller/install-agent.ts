@@ -215,15 +215,8 @@ export const handler = async (argv) => {
       return Yargs.exit(1, err);
     }
 
-    if (verbose()) {
-      UI.error(err);
-    } else {
-      UI.error(
-        `An error occurred. Try re-running the command with the ${chalk.red(
-          'verbose'
-        )} flag (${chalk.red('-v')}).`
-      );
-    }
+    UI.error(err);
+
     Yargs.exit(3, err);
   }
 };
