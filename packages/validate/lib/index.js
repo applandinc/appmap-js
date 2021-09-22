@@ -134,7 +134,13 @@ exports.validate = (data, options) => {
         //   path1,
         //   entity
         // );
-        const designator = makeDesignator([parent.name, path2, parseInt(lineno), entity.static, entity.name]);
+        const designator = makeDesignator([
+          parent.name,
+          path2,
+          parseInt(lineno),
+          entity.static,
+          entity.name,
+        ]);
         assert(
           !designators.has(designator),
           AppmapError,
@@ -157,15 +163,17 @@ exports.validate = (data, options) => {
   {
     const threads = new Map();
     const ids = new Map();
+    let max = 0;
     for (let index = 0; index < events.length; index += 1) {
       const event = events[index];
       assert(
-        !ids.has(event.id),
+        event.id > max,
         AppmapError,
-        "duplicate event id between #%i and #%i",
-        index,
-        ids.get(index)
+        "non-monotonous event id between #%i and #%i",
+        event.id,
+        max
       );
+      max = event.id;
       ids.set(event.id, index);
       let thread = threads.get(event.thread_id);
       if (thread === undefined) {
@@ -173,14 +181,16 @@ exports.validate = (data, options) => {
         threads.set(event.thread_id, thread);
       }
       if (event.event === "call") {
+        // console.log(new Array(thread.length).join("."), event.id);
         thread.push(event);
       } else {
         const parent = thread.pop();
+        // console.log(new Array(thread.length).join("."), event.id, event.parent_id);
         assert(
           parent.id === event.parent_id,
           AppmapError,
-          "return event #%i parent id mistmatch: expected %i but got %i",
-          index,
+          "expected parent id of return event #%i to be %i but got %i",
+          event.id,
           parent.id,
           event.parent_id
         );
@@ -190,6 +200,8 @@ exports.validate = (data, options) => {
           tag2.includes(tag1),
           AppmapError,
           "incompatible event type between #%i and #%i, expected a %s but got a %s",
+          event.id,
+          event.parent_id,
           tag1,
           tag2
         );
