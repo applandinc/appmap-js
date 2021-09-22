@@ -14,16 +14,8 @@ export default async function runCommand(fn: () => Promise<any>) {
       return Yargs.exit(2, err);
     }
 
-    if (verbose()) {
-      UI.error(err);
-    } else {
-      UI.error(`An error occurred: ${err.toString().split('\n')[0]}`);
-      UI.error(
-        `Try re-running the command with the ${chalk.red(
-          'verbose'
-        )} flag (${chalk.red('-v')}).`
-      );
-    }
+    UI.error(err);
+
     Yargs.exit(3, err);
   });
 }
