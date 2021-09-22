@@ -63,23 +63,25 @@ class Session {
   public id: string;
   public expiration: number;
 
-  constructor(id?: string, expiration?: number) {
-    if (id && expiration && !Session.beyondExpiration(expiration)) {
-      this.id = id;
-      this.expiration = expiration;
-    } else {
-      this.id = Session.newSessionId();
-      this.expiration = Session.expirationFromNow();
-    }
-  }
-
-  static issue(): Session | undefined {
+  constructor() {
     const sessionId = config.get('sessionId') as string | undefined;
     const sessionExpiration = config.get('sessionExpiration') as
       | number
       | undefined;
 
-    return new Session(sessionId, sessionExpiration);
+    if (
+      sessionId &&
+      sessionExpiration &&
+      !Session.beyondExpiration(sessionExpiration)
+    ) {
+      this.id = sessionId;
+      this.expiration = sessionExpiration;
+    } else {
+      this.id = Session.newSessionId();
+      this.expiration = Session.expirationFromNow();
+      config.set('sessionId', this.id);
+      config.set('sessionExpiration', this.expiration);
+    }
   }
 
   static beyondExpiration(expiration: number): boolean {
@@ -139,7 +141,7 @@ export default class Telemetry {
 
   static get session(): Session {
     if (!this._session?.valid) {
-      this._session = Session.issue();
+      this._session = new Session();
     }
 
     return this._session as Session;

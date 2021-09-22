@@ -1,4 +1,4 @@
-import sinon from 'sinon';
+import sinon, { SinonSpy } from 'sinon';
 import Conf from 'conf';
 import * as os from 'os';
 import Telemetry from '../../src/telemetry';
@@ -19,16 +19,27 @@ describe('telemetry', () => {
     sinon.stub(Conf.prototype, 'set');
   });
 
-  beforeEach(() => {
+  afterEach(() => {
     sandbox.restore();
   });
 
   describe('Session', () => {
-    it('persists session data', () => {
+    it('writes persistent session data', () => {
+      const setStub = Conf.prototype.set as SinonSpy;
+      const { session } = Telemetry;
+
+      expect(setStub.getCall(-2).args[1]).toBe(session.id);
+      expect(setStub.getCall(-1).args[1]).toBe(session.expiration);
+    });
+
+    it('reads persistent session data', () => {
       const expiration = Date.now() + 1000;
       const conf = sandbox.stub(Conf.prototype, 'get');
       conf.withArgs(sinon.match('sessionId')).returns('sessionId');
       conf.withArgs(sinon.match('sessionExpiration')).returns(expiration);
+
+      // Force a new session
+      Telemetry.session.expiration = invalidExpiration();
 
       const { session } = Telemetry;
       expect(session.id).toBe('sessionId');
