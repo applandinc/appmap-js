@@ -16,7 +16,7 @@ import InstallerUI from './installerUI';
 const REGEX_GEM_DECLARATION = /^(?:gem|group|require)\s/m;
 
 const REGEX_GEM_DEPENDENCY = /^\s*gem\s+['|"]appmap['|"].*$/m;
-const GEM_DEPENDENCY = "gem 'appmap', :groups => [:development, :test]";
+const GEM_DEPENDENCY = "gem \"appmap\", :groups => [:development, :test]";
 
 export class BundleInstaller extends AgentInstaller {
   static identifier = 'Bundler';
