@@ -43,6 +43,7 @@ export default class Graph {
 
   setNodeFromCodeObject(codeObject, parentId = null) {
     let label = codeObject.prettyName;
+    if (!label) return;
 
     if (codeObject.type === CodeObjectType.PACKAGE || codeObject.type === CodeObjectType.HTTP) {
       const numChildren = codeObject.childLeafs().length;
