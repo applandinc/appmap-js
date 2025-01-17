@@ -305,6 +305,11 @@ describe('VsCodeExtension.vue', () => {
     await wrapper.find('[data-cy="export-button"]').trigger('click');
     const exportJSON = wrapper.find('[data-cy="exportJSON"]');
     expect(exportJSON.exists()).toBe(true);
+
+    // TODO: This is a hack to wait for the filters to be applied
+    // We should really fix this at some point
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     await exportJSON.trigger('click');
 
     const exportJSONEventParameters = rootWrapper.emitted()['exportJSON'];

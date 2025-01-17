@@ -80,10 +80,13 @@
           :tabName="VIEW_COMPONENT"
           :ref="VIEW_COMPONENT"
         >
-          <v-diagram-component
-            :class-map="filteredAppMap.classMap"
-            :highlighted-event-index="eventFilterMatchIndex"
-          />
+          <v-loading-spinner v-if="isDiagramLoading" />
+          <v-lazy-loader>
+            <v-diagram-component
+              :class-map="filteredAppMap.classMap"
+              :highlighted-event-index="eventFilterMatchIndex"
+            />
+          </v-lazy-loader>
         </v-tab>
 
         <v-tab
@@ -93,28 +96,34 @@
           :tabName="VIEW_SEQUENCE"
           :allow-scroll="true"
         >
-          <v-diagram-sequence
-            ref="viewSequence_diagram"
-            :app-map="filteredAppMap"
-            :collapse-depth="seqDiagramCollapseDepth"
-            :highlighted-event-index="eventFilterMatchIndex"
-            @setMaxSeqDiagramCollapseDepth="setMaxSeqDiagramCollapseDepth"
-            @updateCollapseDepth="handleNewCollapseDepth"
-          />
+          <v-loading-spinner v-if="isDiagramLoading" />
+          <v-lazy-loader>
+            <v-diagram-sequence
+              ref="viewSequence_diagram"
+              :app-map="filteredAppMap"
+              :collapse-depth="seqDiagramCollapseDepth"
+              :highlighted-event-index="eventFilterMatchIndex"
+              @setMaxSeqDiagramCollapseDepth="setMaxSeqDiagramCollapseDepth"
+              @updateCollapseDepth="handleNewCollapseDepth"
+            />
+          </v-lazy-loader>
         </v-tab>
 
         <v-tab name="Trace View" :is-active="isViewingFlow" :tabName="VIEW_FLOW" :ref="VIEW_FLOW">
           <div class="trace-view">
-            <v-diagram-trace
-              ref="viewFlow_diagram"
-              :events="filteredAppMap.rootEvents()"
-              :event-filter-matches="new Set(eventFilterMatches)"
-              :event-filter-match="eventFilterMatch"
-              :event-filter-match-index="eventFilterMatchIndex + 1"
-              :name="VIEW_FLOW"
-              :zoom-controls="true"
-              @clickEvent="onClickTraceEvent"
-            />
+            <v-loading-spinner v-if="isDiagramLoading" />
+            <v-lazy-loader>
+              <v-diagram-trace
+                ref="viewFlow_diagram"
+                :events="filteredAppMap.rootEvents()"
+                :event-filter-matches="new Set(eventFilterMatches)"
+                :event-filter-match="eventFilterMatch"
+                :event-filter-match-index="eventFilterMatchIndex + 1"
+                :name="VIEW_FLOW"
+                :zoom-controls="true"
+                @clickEvent="onClickTraceEvent"
+              />
+            </v-lazy-loader>
           </div>
         </v-tab>
 
@@ -125,13 +134,16 @@
           :tabName="VIEW_FLAMEGRAPH"
           :allow-scroll="false"
         >
-          <v-diagram-flamegraph
-            ref="viewFlamegraph_diagram"
-            :events="filteredAppMap.rootEvents()"
-            :title="filteredAppMap.name"
-            :highlighted-event-index="eventFilterMatchIndex"
-            @select="onFlamegraphSelect"
-          />
+          <v-loading-spinner v-if="isDiagramLoading" />
+          <v-lazy-loader>
+            <v-diagram-flamegraph
+              ref="viewFlamegraph_diagram"
+              :events="filteredAppMap.rootEvents()"
+              :title="filteredAppMap.name"
+              :highlighted-event-index="eventFilterMatchIndex"
+              @select="onFlamegraphSelect"
+            />
+          </v-lazy-loader>
         </v-tab>
 
         <template v-slot:notification>
@@ -373,6 +385,7 @@ import {
   filterStringToFilterState,
   base64UrlEncode,
   AppMapFilter,
+  AppMap,
 } from '@appland/models';
 import { unparseDiagram } from '@appland/sequence-diagram';
 
@@ -439,6 +452,8 @@ import isPrecomputedSequenceDiagram from '@/lib/isPrecomputedSequenceDiagram';
 import { SAVED_FILTERS_STORAGE_ID } from '../components/FilterMenu.vue';
 import { DEFAULT_SEQ_DIAGRAM_COLLAPSE_DEPTH } from '../components/DiagramSequence.vue';
 import VCompassIcon from '@/assets/compass-simpler.svg';
+import VLazyLoader from '@/components/LazyLoader.vue';
+import VLoadingSpinner from '@/components/LoadingSpinner.vue';
 
 const browserPrefixes = ['', 'webkit', 'moz'];
 
@@ -479,6 +494,8 @@ export default {
     VUnlicensedNotice,
     VConfigurationRequired,
     VCompassIcon,
+    VLazyLoader,
+    VLoadingSpinner,
   },
   store,
   data() {
@@ -505,6 +522,8 @@ export default {
       isFullscreen: false,
       showDetailsPanel: false,
       rightColumnWidth: 0,
+      filteredAppMap: this.emptyFilteredAppMap(),
+      isDiagramLoading: false,
     };
   },
   mixins: [EmitLinkMixin],
@@ -555,6 +574,17 @@ export default {
     },
   },
   watch: {
+    '$store.state.filters': {
+      async handler(filters) {
+        await this.applyFilters(filters, this.$store.state.appMap, true);
+      },
+      deep: true,
+    },
+    '$store.state.appMap': {
+      handler(appMap) {
+        this.applyFilters(this.filters, appMap);
+      },
+    },
     '$store.state.currentView': {
       handler(view) {
         this.$refs.tabs.activateTab(this.$refs[view]);
@@ -675,10 +705,6 @@ export default {
     },
     filters() {
       return this.$store.state.filters;
-    },
-    filteredAppMap() {
-      const { appMap } = this.$store.state;
-      return this.filters.filter(appMap, this.findings);
     },
     viewState() {
       return this.getStateObject();
@@ -885,6 +911,23 @@ export default {
     },
   },
   methods: {
+    async applyFilters(filter, appMap, isAsync = false) {
+      if (isAsync) {
+        this.isDiagramLoading = true;
+        await new Promise((resolve) => {
+          setTimeout(() => {
+            this.filteredAppMap = filter.filter(appMap, this.findings);
+            this.isDiagramLoading = false;
+            resolve();
+          }, 0);
+        });
+      } else {
+        this.filteredAppMap = filter.filter(appMap, this.findings);
+      }
+    },
+    emptyFilteredAppMap() {
+      return new AppMapFilter().filter(new AppMap());
+    },
     detailsPanelTransitionEnd() {
       this.rightColumnWidth = this.$refs.mainColumnRight.offsetWidth;
     },
@@ -1453,9 +1496,11 @@ export default {
     if (this.isGiantAppMap) {
       this.showStatsPanel = true;
       this.setView(null);
+    } else if (this.showStatsPanel && this.currentView === null) {
+      this.showStatsPanel = false;
+      this.setView(this.defaultView);
     }
   },
-
   beforeDestroy() {
     browserPrefixes.forEach((prefix) => {
       document.removeEventListener(prefix + 'fullscreenchange', this.checkFullscreen);
