@@ -300,7 +300,10 @@ export default {
         this.messages.splice(messageIndex, 1);
       }
 
-      if (error.code === 401) {
+      if (
+        error.code === 401 ||
+        (error.code === 500 && error.message === 'Authentication required')
+      ) {
         this.setAuthorized(false);
       } else {
         this.addErrorMessage(error);
