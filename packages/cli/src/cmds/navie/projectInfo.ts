@@ -43,15 +43,15 @@ export default async function collectProjectInfos(
   if (params.includeDiff) {
     const { baseBranch } = params;
 
-    for (const [directory, info] of projectInfoByPath) {
-      const diffContent = (
-        await Promise.all([getWorkingDiff(directory), getDiffLog(undefined, baseBranch, directory)])
-      )
-        .filter(Boolean)
-        .join('\n\n');
+    // for (const [directory, info] of projectInfoByPath) {
+    //   const diffContent = (
+    //     await Promise.all([getWorkingDiff(directory), getDiffLog(undefined, baseBranch, directory)])
+    //   )
+    //     .filter(Boolean)
+    //     .join('\n\n');
 
-      info.diff = diffContent;
-    }
+    //   info.diff = diffContent;
+    // }
   }
 
   const { projectDirectories } = configuration();

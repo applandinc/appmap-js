@@ -40,6 +40,33 @@ export namespace NavieRpc {
         thread: ConversationThread;
       };
     }
+
+    export namespace Models {
+      export type Model = {
+        id: string;
+        name: string;
+        provider: string;
+        createdAt: string;
+      };
+
+      export namespace Add {
+        export const Method = 'v1.navie.models.add';
+        export type Params = Model[];
+        export type Response = void;
+      }
+
+      export namespace List {
+        export const Method = 'v1.navie.models.list';
+        export type Params = {};
+        export type Response = Model[];
+      }
+
+      export namespace Select {
+        export const Method = 'v1.navie.models.select';
+        export type Params = Model;
+        export type Response = void;
+      }
+    }
   }
 
   export namespace V2 {

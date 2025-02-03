@@ -72,13 +72,19 @@ export class NavieOptions {
   responseTokens = Number(process.env.APPMAP_NAVIE_RESPONSE_TOKENS ?? DEFAULT_RESPONSE_TOKENS);
 }
 
+export interface NavieModel {
+  id: string;
+  provider: string;
+}
+
 export default function navie(
   clientRequest: ClientRequest,
   contextProvider: ContextV2.ContextProvider,
   projectInfoProvider: ProjectInfoProvider,
   helpProvider: HelpProvider,
   options: NavieOptions,
-  chatHistory?: ChatHistory
+  chatHistory?: ChatHistory,
+  model?: NavieModel
 ): INavie {
   if (options.modelName !== DEFAULT_MODEL_NAME) warn(`Using model ${options.modelName}`);
   if (options.tokenLimit !== DEFAULT_TOKEN_LIMIT) warn(`Using token limit ${options.tokenLimit}`);
@@ -90,7 +96,7 @@ export default function navie(
 
   const interactionHistory = new InteractionHistory();
 
-  const completionService = createCompletionService({ ...options, trajectory });
+  const completionService = createCompletionService({ ...options, trajectory }, model);
 
   const classificationService = new ClassificationService(interactionHistory, completionService);
 

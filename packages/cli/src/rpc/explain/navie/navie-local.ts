@@ -18,6 +18,7 @@ import assert from 'assert';
 import { initializeHistory, loadThread } from './historyHelper';
 import { THREAD_ID_REGEX } from './history';
 import Trajectory from './trajectory';
+import ModelRegistry from '../../navie/models/registry';
 
 const OPTION_SETTERS: Record<
   string,
@@ -147,7 +148,8 @@ export default class LocalNavie extends EventEmitter implements INavie {
         this.projectInfoProvider,
         this.helpProvider,
         this.navieOptions,
-        thread.messages
+        thread.messages,
+        ModelRegistry.instance.selectedModel
       );
 
       let agentName: string | undefined;

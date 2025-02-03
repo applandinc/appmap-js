@@ -33,6 +33,10 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { navieWelcomeV2 } from '../../rpc/navie/welcome';
 import { navieRegisterV1 } from '../../rpc/navie/register';
+import ModelRegistry from '../../rpc/navie/models/registry';
+import { navieModelsAddV1 } from '../../rpc/navie/models/handlers/add';
+import { navieModelsListV1 } from '../../rpc/navie/models/handlers/list';
+import { navieModelsSelectV1 } from '../../rpc/navie/models/handlers/select';
 
 export const command = 'rpc';
 export const describe = 'Run AppMap JSON-RPC server';
@@ -76,11 +80,18 @@ export function rpcMethods(navie: INavieProvider, codeEditor?: string): RpcHandl
     navieSuggestHandlerV1(navie),
     navieWelcomeV2(navie),
     navieRegisterV1(codeEditor),
+    navieModelsAddV1(),
+    navieModelsListV1(),
+    navieModelsSelectV1(),
   ];
 }
 
 export const handler = async (argv: HandlerArguments) => {
   verbose(argv.verbose);
+
+  ModelRegistry.instance.refresh().catch((e) => {
+    console.error(`failed to intialize model registry: ${String(e)}`);
+  });
 
   const navie = buildNavieProvider(argv);
   let codeEditor: string | undefined = argv.codeEditor;

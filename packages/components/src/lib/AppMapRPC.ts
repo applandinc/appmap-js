@@ -318,4 +318,28 @@ export default class AppMapRPC {
       );
     });
   }
+
+  listModels(): Promise<NavieRpc.V1.Models.Model[]> {
+    return new Promise((resolve, reject) => {
+      this.client.request(
+        NavieRpc.V1.Models.List.Method,
+        {},
+        (err: any, error: any, result: NavieRpc.V1.Models.Model[]) => {
+          if (err || error) return reportError(reject, err, error);
+
+          resolve(result);
+        }
+      );
+    });
+  }
+
+  selectModel(model: NavieRpc.V1.Models.Model): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.client.request(NavieRpc.V1.Models.Select.Method, model, (err: any) => {
+        if (err) return reportError(reject, err, err);
+
+        resolve();
+      });
+    });
+  }
 }

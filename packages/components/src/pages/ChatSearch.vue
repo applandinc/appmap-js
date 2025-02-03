@@ -26,18 +26,11 @@
         @isChatting="setIsChatting"
         @stop="onStop"
       >
-        <div class="configuration-container" v-if="!isChatting">
-          <v-llm-configuration
-            data-cy="llm-config"
-            v-if="!disableLlmConfig"
-            :is-loading="isNavieLoading"
-            :base-url="baseUrl"
-            :model="model"
-            :subscription="subscription"
-            :usage="usage"
-            :email="email"
-          />
-        </div>
+        <v-model-selector
+          :models="models"
+          :selected-model-id="selectedModelId"
+          @select="onModelSelect"
+        />
 
         <template #not-chatting>
           <div class="message-box__footer">
@@ -130,6 +123,7 @@ import AppMapRPC from '@/lib/AppMapRPC';
 import { PinFileRequest } from '@/lib/PinFileRequest';
 import debounce from '@/lib/debounce';
 import InfoIcon from '../assets/info.svg';
+import VModelSelector from '@/components/chat-search/ModelSelector.vue';
 
 export default {
   name: 'v-chat-search',
@@ -143,6 +137,7 @@ export default {
     VPopper,
     VWelcomeMessageV1,
     VWelcomeMessageV2,
+    VModelSelector,
   },
   mixins: [authenticatedClient],
   props: {
@@ -227,6 +222,8 @@ export default {
       configLoaded: false,
       baseUrl: undefined,
       model: undefined,
+      models: [],
+      selectedModelId: undefined,
       contextItems: {},
       pinnedItems: [] as PinItem[],
       projectDirectories: [] as string[],
@@ -676,6 +673,13 @@ export default {
 
       this.isWelcomeV2Available = this.rpcMethodsAvailable.includes('v2.navie.welcome');
     },
+    async listModels() {
+      try {
+        this.models = await this.rpcClient.listModels();
+      } catch (e) {
+        console.error(e);
+      }
+    },
     async isRpcMethodAvailable(methodName) {
       return this.rpcMethodsAvailable.includes(methodName);
     },
@@ -777,6 +781,9 @@ export default {
         // system.listMethods
         await this.listRpcMethods();
 
+        // v1.navie.models.list
+        this.listModels();
+
         // v1.navie.register
         this.initConversationThread();
 
@@ -786,6 +793,17 @@ export default {
 
         // v2.navie.welcome
         this.loadDynamicWelcomeMessages();
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    async onModelSelect(modelId: string) {
+      const model = this.models.find((m) => m.id === modelId);
+      if (!model) return;
+
+      this.selectedModelId = modelId;
+      try {
+        await this.rpcClient.selectModel(model);
       } catch (e) {
         console.error(e);
       }
