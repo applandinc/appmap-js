@@ -121,39 +121,15 @@ function getDefaultPatterns(): string[] {
 }
 
 const DEFAULT_PATTERNS = [
-  'config/**',
-  'db_config/**',
-  'db-scripts/**',
-  'backups/**',
-  '.vscode/**',
-  'config*.json',
-  'db_config*.json',
-  'application*.properties',
-  'web*.config',
-  'app*.config',
-  '*.pem',
-  '*.key',
-  '*.crt',
-  '*.log',
-  'config*.yaml',
-  'application*.yaml',
-  'application*.yml',
-  'config*.yml',
-  'database*.yml',
-  'config*.groovy',
-  'config*.py',
-  'config*.js',
-  'hibernate.cfg*.yml',
-  'pom.xml',
-  'settings*.js',
-  'settings*.py',
-  '*.ini',
-  '*.env',
-  '**/SWIFT/*.xml',
-  '*.csv',
-  '**/src/main/resources/*.properties',
-  '**/src/main/resources/*.yaml',
-  '**/src/main/resources/*.yml',
-  '**/src/main/resources/*.json',
-  '**/src/main/resources/*.xml',
+  'config*.json', // JSON configuration files often contain sensitive settings and credentials
+  '*.pem', // PEM files typically store private keys and certificates
+  '*.key', // Key files contain private keys
+  '*.crt', // Certificate files
+  '*.log', // Log files may contain sensitive information such as error messages and stack traces
+  '*.env', // Environment variable files often contain sensitive data like API keys and passwords
+  '**/src/main/resources/*.properties', // Properties files in resources may contain configuration settings
+  '**/src/main/resources/*.yaml', // YAML files in resources may contain configuration settings
+  '**/src/main/resources/*.yml', // YML files in resources may contain configuration settings
+  '**/src/main/resources/*.json', // JSON files in resources may contain configuration settings
+  '**/src/main/resources/*.xml', // XML files in resources may contain configuration settings
 ];
