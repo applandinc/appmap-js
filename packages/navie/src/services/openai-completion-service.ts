@@ -1,11 +1,11 @@
 import { isNativeError } from 'node:util/types';
 
+import { getModelNameForTiktoken } from '@langchain/core/language_models/base';
 import { ChatOpenAI } from '@langchain/openai';
 import type { ChatCompletion, ChatCompletionChunk } from 'openai/resources/index';
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { warn } from 'console';
-import Message from '../message';
 import CompletionService, {
   Completion,
   CompletionRetries,
@@ -15,11 +15,18 @@ import CompletionService, {
   Usage,
 } from './completion-service';
 import Trajectory from '../lib/trajectory';
+import Message, { CHARACTERS_PER_TOKEN } from '../message';
 import { APIError } from 'openai';
 import MessageTokenReducerService from './message-token-reducer-service';
 import { findObject, tryParseJson } from '../lib/parse-json';
 import trimFences from '../lib/trim-fences';
 import { performance } from 'node:perf_hooks';
+
+// For some reason this doesn't work as import
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { getEncodingNameForModel } = require('js-tiktoken/lite') as {
+  getEncodingNameForModel: (x: string) => string;
+};
 
 /*
   Generated on https://openai.com/api/pricing/ with
@@ -186,6 +193,13 @@ export default class OpenAICompletionService implements CompletionService {
       streaming: true,
       onFailedAttempt,
     });
+    try {
+      getEncodingNameForModel(getModelNameForTiktoken(modelName));
+    } catch {
+      warn(`Unknown model ${modelName}, using estimated token count`);
+      this.model.getNumTokens = (c) =>
+        Promise.resolve(typeof c === 'string' ? c.length / CHARACTERS_PER_TOKEN : 0);
+    }
   }
   model: ChatOpenAI;
 

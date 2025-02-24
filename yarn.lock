@@ -475,6 +475,7 @@ __metadata:
     eslint-plugin-unicorn: ^39.0.0
     fast-xml-parser: ^4.4.0
     jest: ^29.7.0
+    js-tiktoken: ^1.0.18
     js-yaml: ^4.1.0
     jsdom: ^16.6.0
     langchain: ^0.2.16
@@ -28738,12 +28739,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-tiktoken@npm:^1.0.12":
-  version: 1.0.14
-  resolution: "js-tiktoken@npm:1.0.14"
+"js-tiktoken@npm:^1.0.12, js-tiktoken@npm:^1.0.18":
+  version: 1.0.18
+  resolution: "js-tiktoken@npm:1.0.18"
   dependencies:
     base64-js: ^1.5.1
-  checksum: 0feb0f4186221f9db4cf7224313e83b8b869460f63c40634b47946d8312c2e05a66a2fd256ecd577f913563dce05f6d52fa9e3eba6a5e9270f82a4630a77fc2c
+  checksum: ee86872b8ef77c72952905e9c321e00a4005883e9807a7ed83539b1bfd625e01000e640b18071f5072a2d4e423e66d29f8239eb3b7d743d8d5203ec8e83b78d3
   languageName: node
   linkType: hard
 
